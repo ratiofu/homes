@@ -127,6 +127,7 @@ button:hover{background:var(--accent-soft)}
   <section>
     <h2>Your inputs and rate</h2>
     <div class="panel" style="display:grid;gap:18px">
+      <p class="note" style="margin:0">When you change a value here, the whole page updates: the rate, the monthly payment, the balloon, the closing estimate, the charts, and the amortization schedule.</p>
       <div class="inputs">
         <label for="downPct">Down payment (%)<input id="downPct" type="number" inputmode="decimal" required step="0.5" min="20" max="80" data-unit="%" value="20" style="--w:5" aria-describedby="downPctHint"><span class="hint" id="downPctHint" data-hint="20 to 80, in steps of 0.5">20 to 80, in steps of 0.5</span></label>
         <label for="fico">Credit score (FICO)<input id="fico" type="number" inputmode="decimal" required step="1" min="300" max="850" value="800" style="--w:4" aria-describedby="ficoHint"><span class="hint" id="ficoHint" data-hint="300 to 850; 620 or higher qualifies">300 to 850; 620 or higher qualifies</span></label>
@@ -158,8 +159,8 @@ button:hover{background:var(--accent-soft)}
     <h2>Closing estimate</h2>
     <p class="note">A simplified version of the Closing Disclosure a bank would give you, for a Dec 15, 2026 closing. The escrow company will issue the final settlement statement. Title premiums follow the Oregon title rating manual; escrow and collection-setup amounts are estimates until quotes are in. WFG National Title handles the closing and the collection escrow.</p>
     <div class="panel inputs">
-      <label for="earnest">Earnest money deposit ($)<input id="earnest" type="number" inputmode="decimal" required step="100" min="0" max="147980" data-unit="$" value="7500" style="--w:7" aria-describedby="earnestHint"><span class="hint" id="earnestHint" data-hint="$0 up to the down payment, in steps of $100">$0 up to the down payment, in steps of $100</span></label>
-      <p class="note" style="margin:0">Default: $7,500, about 1% of the price. You pay it into escrow a few days after the offer is accepted. It is part of your down payment, not an added cost.</p>
+      <label for="earnest">Earnest money deposit ($)<input id="earnest" type="number" inputmode="decimal" required step="100" min="7400" max="147980" data-unit="$" value="7500" style="--w:7" aria-describedby="earnestHint"><span class="hint" id="earnestHint" data-hint="At least $7,400 (1% of the price, rounded up to $100), up to the down payment, in steps of $100">At least $7,400 (1% of the price, rounded up to $100), up to the down payment, in steps of $100</span></label>
+      <p class="note" style="margin:0">Minimum: 1% of the price ($7,399, rounded up to $7,400). Default: $7,500. You pay it into escrow a few days after the offer is accepted. It is part of your down payment, not an added cost.</p>
     </div>
     <div class="two">
       <div class="panel" style="display:grid;gap:10px"><h2>Loan terms</h2><dl class="kv" id="cdTerms"></dl></div>
@@ -256,6 +257,7 @@ function fieldMsg(el){
   if(v.valueMissing || v.badInput) return "Enter a number.";
   if(v.rangeUnderflow || v.rangeOverflow){
     if(el.id==="earnest" && v.rangeOverflow) return `The deposit cannot be more than the down payment (${fmtVal(el, el.max)}).`;
+    if(el.id==="earnest" && v.rangeUnderflow) return `The deposit must be at least 1% of the price (${fmtVal(el, el.min)}).`;
     return `Enter a value from ${fmtVal(el, el.min)} to ${fmtVal(el, el.max)}.`;
   }
   if(v.stepMismatch) return el.step==="1" ? "Enter a whole number." : `Use steps of ${fmtVal(el, el.step)}.`;
