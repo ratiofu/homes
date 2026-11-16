@@ -167,6 +167,8 @@ button:hover{background:var(--accent-soft)}
       <div class="panel" style="display:grid;gap:10px"><h2>Cash to close</h2><dl class="kv" id="cdCash"></dl></div>
     </div>
     <div class="scroll"><table id="cdCosts"></table></div>
+    <p class="note" style="margin:0">Tabitha Solano is the seller and also a licensed broker in this sale. For full transparency, the table below shows every seller closing cost, what your contribution pays, and what the seller pays.</p>
+    <div class="scroll"><table id="cdSeller"></table></div>
     <div class="scroll"><table id="cdSummary"></table></div>
   </section>
 
@@ -316,6 +318,7 @@ function render(){
   try{ localStorage.setItem("buyerNoteInputs-v9", JSON.stringify({downPct:$("downPct").value,fico:$("fico").value,ins:$("ins").value,earnest:$("earnest").value})); }catch(e){}
 }
 
+const LIST_PCT = 2.5, BROKER_SHARE = 30, DEED_REC = 167; // seller-side figures, as in the seller's settlement estimate
 const COLLECT_M = 17, COLLECT_Y = 125; // WFG collection escrow, estimate: $15 per payment + $2 receipt; $125/yr tax and insurance reserve
 const TAX_2026_PAID = 8691.93, CLOSE = "2026-12-15", ESCROW_TOTAL = 2000, TD_REC = 187, SELLER_COST_CAP = 9000;
 function basicRate(a){ return a<=500000 ? 1350 : 1350 + 1.5*Math.ceil((a-500000)/1000 - 1e-9); }
@@ -323,6 +326,17 @@ function renderClosing(down, L, taxM, insM, rate, s, n){
   const days = Math.round((Date.UTC(2027,5,30) - Date.parse(CLOSE))/864e5) + 1;
   const end = s.rows[n-1];
   const lenderTitle = 100 + 0.30*basicRate(L), COLLECT_TOTAL = Math.max(250, 35 + 2*Math.ceil(L/1000));
+  // Seller's closing costs, shown in full for transparency (same figures as the seller's settlement estimate).
+  const brokerage = PRICE*LIST_PCT/100*BROKER_SHARE/100;
+  const sellerItems = [
+    [`Listing brokerage compensation: ${BROKER_SHARE}% of the ${LIST_PCT}% listing commission, paid to the brokerage (Tabitha Solano gives up her ${100-BROKER_SHARE}% share)`, brokerage],
+    ["Title – owner's title policy (standard coverage, for you)", basicRate(PRICE)],
+    ["Title – escrow / settlement fee (seller's half)", ESCROW_TOTAL/2],
+    ["Recording fee – deed (Multnomah County)", DEED_REC],
+    ["Loan servicing – collection escrow setup (seller's half, estimate)", COLLECT_TOTAL/2],
+    ["Seller's attorney (note, trust deed, and document review)", null]
+  ];
+  const sellerTotal = sellerItems.reduce((a,i)=>a+(i[1]||0),0), contrib = Math.min(SELLER_COST_CAP, sellerTotal);
   const groups = [
     ["A. Loan costs", [
       ["Origination charges, points, appraisal, credit report", 0],
@@ -344,7 +358,7 @@ function renderClosing(down, L, taxM, insM, rate, s, n){
     ["E. Other", [
       ["Title – escrow / settlement fee (your half)", ESCROW_TOTAL/2],
       ["Title – owner's title policy (paid by seller)", 0],
-      ["Contribution to seller's closing costs (up to $9,000; seller pays any amount above)", SELLER_COST_CAP]
+      ["Contribution to seller's closing costs (up to $9,000; seller pays any amount above; itemized below)", contrib]
     ]]
   ];
   let total = 0, h = `<thead><tr><th>Closing costs</th><th>Borrower-paid</th></tr></thead><tbody>`;
@@ -354,6 +368,13 @@ function renderClosing(down, L, taxM, insM, rate, s, n){
   });
   h += `<tr class="balloon"><td>Total closing costs</td><td>${usd2(total)}</td></tr></tbody>`;
   $("cdCosts").innerHTML = h;
+
+  let hs = `<thead><tr><th>Seller's closing costs (shown in full)</th><th>Amount</th></tr></thead><tbody>`;
+  hs += sellerItems.map(i=>`<tr><td style="white-space:normal;padding-left:22px">${i[0]}</td><td>${i[1]==null?"Paid by seller (not yet quoted)":usd2(i[1])}</td></tr>`).join("");
+  hs += `<tr class="yr"><td>Total seller's closing costs (without attorney)</td><td>${usd2(sellerTotal)}</td></tr>`;
+  hs += `<tr><td style="padding-left:22px">Paid by you (your contribution, up to ${usd(SELLER_COST_CAP)})</td><td>${usd2(contrib)}</td></tr>`;
+  hs += `<tr class="balloon"><td>Paid by the seller</td><td>${usd2(sellerTotal-contrib)} plus attorney</td></tr></tbody>`;
+  $("cdSeller").innerHTML = hs;
 
   const prorate = TAX_2026_PAID*days/365, earnest = num("earnest");
   const dueFrom = PRICE + total + prorate, paid = L + earnest, cash = dueFrom - paid;
