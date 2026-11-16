@@ -329,7 +329,7 @@ function renderClosing(down, L, taxM, insM, rate, s, n){
   // Seller's closing costs, shown in full for transparency (same figures as the seller's settlement estimate).
   const brokerage = PRICE*LIST_PCT/100*BROKER_SHARE/100;
   const sellerItems = [
-    [`Listing brokerage compensation: ${BROKER_SHARE}% of the ${LIST_PCT}% listing commission, paid to the brokerage (Tabitha Solano gives up her ${100-BROKER_SHARE}% share)`, brokerage],
+    [`Listing brokerage compensation: ${BROKER_SHARE}% of the ${LIST_PCT}% listing commission, paid to the brokerage`, brokerage],
     ["Title – owner's title policy (standard coverage, for you)", basicRate(PRICE)],
     ["Title – escrow / settlement fee (seller's half)", ESCROW_TOTAL/2],
     ["Recording fee – deed (Multnomah County)", DEED_REC],
